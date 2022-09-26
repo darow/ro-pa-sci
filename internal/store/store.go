@@ -1,5 +1,6 @@
 package store
 
 type Store interface {
-	User()
+	User() UserRepository
+	Session() SessionRepository
 }

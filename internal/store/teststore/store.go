@@ -1,6 +1,9 @@
 package teststore
 
-import "rock-paper-scissors/internal/store"
+import (
+	"rock-paper-scissors/internal/model"
+	"rock-paper-scissors/internal/store"
+)
 
 type Store struct {
 	userRepository    *UserRepository

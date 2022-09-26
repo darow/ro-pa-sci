@@ -3,13 +3,16 @@ package server
 import (
 	"net/http"
 
+	"rock-paper-scissors/internal/store"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
 type server struct {
-	logger *zap.SugaredLogger
+	store  store.Store
 	router *gin.Engine
+	logger *zap.SugaredLogger
 }
 
 // ServeHTTP server должен удовлетворять интерфейсу http.Handler
@@ -17,10 +20,11 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
 }
 
-func newServer(logger *zap.SugaredLogger) *server {
+func newServer(store store.Store, logger *zap.SugaredLogger) *server {
 	s := &server{
-		logger: logger,
+		store:  store,
 		router: gin.Default(),
+		logger: logger,
 	}
 
 	s.configureRouter()
@@ -28,10 +32,16 @@ func newServer(logger *zap.SugaredLogger) *server {
 }
 
 func (s *server) configureRouter() {
-	s.router.Use()
-	s.router.GET("/ws", s.wsHandler())
+	s.router.Use(s.setRequestID())
+	s.router.Use(gin.Logger())
+
+	s.router.GET("/", func(c *gin.Context) { c.Redirect(http.StatusFound, "/game.html") })
 	s.router.GET("/:filename", func(c *gin.Context) {
 		filepath := "./web/" + c.Param("filename")
 		c.File(filepath)
 	})
+
+	s.router.POST("/user", s.handleCreateUser())
+	authorized := s.router.Group("/rps", s.auth())
+	authorized.GET("/ws", s.wsHandler())
 }
