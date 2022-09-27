@@ -25,15 +25,22 @@ func (s *server) setRequestID() gin.HandlerFunc {
 
 func (s *server) auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.GetHeader("Authorization")
+		token, err := c.Cookie("session")
+		if err != nil {
+			c.AbortWithError(http.StatusUnauthorized, err)
+			return
+		}
+
 		session, err := s.store.Session().Find(token)
 		if err != nil {
 			c.AbortWithError(http.StatusUnauthorized, err)
+			return
 		}
 
 		user, err := s.store.User().Find(session.UserID)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
 
 		c.Set(ctxUserKey, user)

@@ -1,10 +1,9 @@
 function handleWS() {
-    let socket = new WebSocket("ws://localhost:8080/ws");
+    let socket = new WebSocket("ws://localhost:8080/rps/ws");
 
     socket.onopen = () => {
         console.log("Successfully Connected");
-        const input = prompt("What's your name?");
-        socket.send(input)
+        socket.send("playersTop")
     };
 
     socket.onclose = event => {
@@ -27,7 +26,27 @@ const contentElem = document.querySelector('#content')
 document.querySelector('#login-btn').addEventListener("click", () => {
     fetch("/login.html")
         .then((response) => response.text())
-        .then((data) => {contentElem.innerHTML = data});
+        .then((data) => {
+            contentElem.innerHTML = data
+            document.forms['loginForm'].addEventListener('submit', (event) => {
+                event.preventDefault();
+                // TODO do something here to show user that form is being submitted
+                fetch(event.target.action, {
+                    method: 'POST',
+                    body: new URLSearchParams(new FormData(event.target)) // event.target is the form
+                }).then((resp) => {
+                    return resp.json();
+                }).then((body) => {
+                    if (body.error) {
+                        document.querySelector('#error').textContent = body.error
+                    } else {
+                        handleWS()
+                    }
+                }).catch((error) => {
+                    console.log(error)
+                });
+            });
+        });
 })
 
 document.querySelector('#signup-btn').addEventListener("click", () => {
@@ -35,18 +54,22 @@ document.querySelector('#signup-btn').addEventListener("click", () => {
         .then((response) => response.text())
         .then((data) => {
             contentElem.innerHTML = data
-            document.forms['myForm'].addEventListener('submit', (event) => {
+            document.forms['signupForm'].addEventListener('submit', (event) => {
                 event.preventDefault();
                 // TODO do something here to show user that form is being submitted
                 fetch(event.target.action, {
                     method: 'POST',
                     body: new URLSearchParams(new FormData(event.target)) // event.target is the form
                 }).then((resp) => {
-                    return resp.json(); // or resp.text() or whatever the server sends
+                    return resp.json();
                 }).then((body) => {
-                    console.log(body)
-                }).catch((error) => {
-                    console.log(body)
+                    if (body.error) {
+                        document.querySelector('#error').textContent = body.error
+                    } else {
+                        document.querySelector('#login-btn').click()
+                    }
+                    }).catch((error) => {
+                    console.log(error)
                 });
             });
         });

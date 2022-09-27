@@ -35,7 +35,7 @@ func (r *SessionRepository) createToken() string {
 	return r.createToken()
 }
 
-func (r *SessionRepository) Create(u *model.User) error {
+func (r *SessionRepository) Create(u *model.User) (*model.Session, error) {
 	s := &model.Session{
 		UserID:         u.ID,
 		Token:          r.createToken(),
@@ -43,7 +43,8 @@ func (r *SessionRepository) Create(u *model.User) error {
 	}
 	s.ID = len(r.sessions)
 	r.sessions[s.ID] = s
-	return nil
+
+	return s, nil
 }
 
 func (r *SessionRepository) Find(token string) (*model.Session, error) {

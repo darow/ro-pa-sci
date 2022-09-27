@@ -33,7 +33,6 @@ func newServer(store store.Store, logger *zap.SugaredLogger) *server {
 
 func (s *server) configureRouter() {
 	s.router.Use(s.setRequestID())
-	s.router.Use(gin.Logger())
 
 	s.router.GET("/", func(c *gin.Context) { c.Redirect(http.StatusFound, "/game.html") })
 	s.router.GET("/:filename", func(c *gin.Context) {
@@ -42,6 +41,7 @@ func (s *server) configureRouter() {
 	})
 
 	s.router.POST("/user", s.handleCreateUser())
+	s.router.POST("/session", s.handleCreateSession())
 	authorized := s.router.Group("/rps", s.auth())
 	authorized.GET("/ws", s.wsHandler())
 }
