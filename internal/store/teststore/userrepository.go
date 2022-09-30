@@ -2,14 +2,18 @@ package teststore
 
 import (
 	"errors"
+	"sort"
 
 	"rock-paper-scissors/internal/model"
 	"rock-paper-scissors/internal/store"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct {
-	store *Store
-	users map[int]*model.User
+	store       *Store
+	users       map[int]*model.User
+	onlineUsers []*model.User
 }
 
 func (r *UserRepository) Create(u *model.User) error {
@@ -37,7 +41,7 @@ func (r *UserRepository) Login(login, password string) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	if u.Password != password {
+	if err = bcrypt.CompareHashAndPassword(u.EncryptedPassword, []byte(password)); err != nil {
 		return nil, errors.New("Пароль не подходит")
 	}
 
@@ -52,4 +56,25 @@ func (r *UserRepository) findByLogin(login string) (*model.User, error) {
 	}
 
 	return nil, store.ErrRecordNotFound
+}
+
+func (r *UserRepository) PopOnlineUser(u *model.User) {
+	for i := range r.onlineUsers {
+		if r.onlineUsers[i].ID == u.ID {
+			r.onlineUsers[i], r.onlineUsers[len(r.onlineUsers)-1] = r.onlineUsers[len(r.onlineUsers)-1], r.onlineUsers[i]
+		}
+	}
+}
+
+func (r *UserRepository) GetTop() []*model.User {
+	res := make([]*model.User, 0, len(r.users))
+	for _, v := range r.users {
+		res = append(res, v)
+	}
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].Score > res[j].Score
+	})
+
+	return res
 }

@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -10,7 +11,9 @@ type User struct {
 	ID                int    `json:"id"`
 	Login             string `json:"login"`
 	Password          string `json:"password,omitempty"`
-	EncryptedPassword string `json:"-,omitempty"`
+	EncryptedPassword []byte `json:"-"`
+	IsOnline          bool   `json:"is_online"`
+	Score             int    `json:"score"`
 }
 
 // BeforeCreate TODO Сюда можно добавить валидацию
@@ -25,21 +28,23 @@ func (u *User) BeforeCreate() error {
 	}
 
 	u.EncryptedPassword = enc
+	u.Password = ""
+	u.Score = int(time.Now().UnixMicro() % 10)
 
 	return nil
 }
 
-func encryptString(s string) (string, error) {
+func encryptString(s string) ([]byte, error) {
 	enc, err := bcrypt.GenerateFromPassword([]byte(s), bcrypt.MinCost)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(enc), nil
+	return enc, nil
 }
 
 // Sanitize ...
 func (u *User) Sanitize() {
 	u.Password = ""
-	u.EncryptedPassword = ""
+	u.EncryptedPassword = nil
 }

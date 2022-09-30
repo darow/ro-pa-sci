@@ -20,8 +20,9 @@ func (s *Store) User() store.UserRepository {
 	}
 
 	s.userRepository = &UserRepository{
-		store: s,
-		users: make(map[int]*model.User),
+		store:       s,
+		users:       make(map[int]*model.User),
+		onlineUsers: []*model.User{},
 	}
 	return s.userRepository
 }

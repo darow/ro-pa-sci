@@ -40,8 +40,12 @@ func (s *server) configureRouter() {
 		c.File(filepath)
 	})
 
-	s.router.POST("/user", s.handleCreateUser())
-	s.router.POST("/session", s.handleCreateSession())
-	authorized := s.router.Group("/rps", s.auth())
+	s.router.POST("/user", s.createUser)
+	s.router.POST("/session", s.createSession)
+	s.router.GET("/online_users", s.getOnlineUsers)
+
+	authorized := s.router.Group("/auth", s.auth)
+	authorized.GET("/", s.whoAmI)
+	authorized.GET("/logout", s.logout)
 	authorized.GET("/ws", s.wsHandler())
 }
