@@ -1,8 +1,10 @@
 package server
 
 import (
-	"log"
+	"fmt"
 	"net/http"
+
+	"rock-paper-scissors/internal/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -17,17 +19,39 @@ func (s *server) wsHandler() func(c *gin.Context) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
 	return func(c *gin.Context) {
+		u, ok := c.Get(ctxUserKey)
+		if !ok {
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объекта с ключом не существует", ErrNotFoundInContext))
+		}
+		user, ok := u.(*model.User)
+		if !ok {
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объект имеет некорректный тип", ErrNotFoundInContext))
+		}
+
 		ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			log.Println(err)
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
 
-		s.logger.Infoln("client connected")
-		err = ws.WriteMessage(1, []byte("Hi Client!"))
+		user.IsOnline = true
+		s.reader(ws, user)
+	}
+}
+
+func (s *server) reader(conn *websocket.Conn, user *model.User) {
+	for {
+		messageType, p, err := conn.ReadMessage()
 		if err != nil {
-			log.Println(err)
+			user.IsOnline = false
+			s.logger.Error(err)
+			return
 		}
+		fmt.Println(string(p))
 
-		reader(ws)
+		if err := conn.WriteMessage(messageType, []byte("message recieved")); err != nil {
+			s.logger.Error(err)
+			return
+		}
 	}
 }

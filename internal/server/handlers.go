@@ -1,63 +1,75 @@
 package server
 
 import (
-	"bufio"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
+	"time"
 
-	"github.com/gorilla/websocket"
+	"rock-paper-scissors/internal/model"
+
+	"github.com/gin-gonic/gin"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+func (s *server) createUser(c *gin.Context) {
+	u := &model.User{
+		Login:    c.PostForm("login"),
+		Password: c.PostForm("password"),
+	}
+
+	err := s.store.User().Create(u)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, true)
 }
 
-func wsEndpoint(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	// upgrade this connection to a WebSocket
-	// connection
-	ws, err := upgrader.Upgrade(w, r, nil)
+func (s *server) createSession(c *gin.Context) {
+	u, err := s.store.User().Login(c.PostForm("login"), c.PostForm("password"))
 	if err != nil {
-		log.Println(err)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+		return
 	}
 
-	log.Println("Client Connected")
-	err = ws.WriteMessage(1, []byte("Hi Client!!"))
+	session, err := s.store.Session().Create(u)
 	if err != nil {
-		log.Println(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
 	}
-	// listen indefinitely for new messages coming
-	// through on our WebSocket connection
-	reader(ws)
+
+	c.SetCookie("session", session.Token, int(session.ExpirationTime.Sub(time.Now()).Seconds()), "", "", false, false)
+	c.JSON(http.StatusCreated, u)
 }
 
-func reader(conn *websocket.Conn) {
-	for {
-		// read in a message
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		// print out that message for clarity
-		fmt.Println(string(p))
-
-		if err := conn.WriteMessage(messageType, []byte("message recieved")); err != nil {
-			log.Println(err)
-			return
-		}
-
-		reader := bufio.NewReader(os.Stdin)
-		text, _ := reader.ReadString('\n')
-
-		if err := conn.WriteMessage(messageType, []byte(text)); err != nil {
-			log.Println(err)
-			return
-		}
-
+func (s *server) whoAmI(c *gin.Context) {
+	u, ok := c.Get(ctxUserKey)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объекта с ключом не существует", ErrNotFoundInContext))
 	}
+	user, ok := u.(*model.User)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объект имеет некорректный тип", ErrNotFoundInContext))
+	}
+
+	c.JSON(http.StatusCreated, user)
+}
+
+func (s *server) getOnlineUsers(c *gin.Context) {
+	c.JSON(http.StatusCreated, s.store.User().GetTop())
+}
+
+func (s *server) logout(c *gin.Context) {
+	u, ok := c.Get(ctxUserKey)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объекта с ключом не существует", ErrNotFoundInContext))
+	}
+	user, ok := u.(*model.User)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объект имеет некорректный тип", ErrNotFoundInContext))
+	}
+
+	user.IsOnline = false
+	c.SetCookie("session", "", -1, "", "", false, false)
+	c.Status(http.StatusOK)
 }
