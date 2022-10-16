@@ -1,8 +1,8 @@
 package teststore
 
 import (
-	"rock-paper-scissors/internal/model"
-	"rock-paper-scissors/internal/store"
+	"github.com/darow/ro-pa-sci/internal/model"
+	"github.com/darow/ro-pa-sci/internal/store"
 )
 
 type Store struct {

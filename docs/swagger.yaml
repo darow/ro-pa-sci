@@ -1,0 +1,60 @@
+basePath: /
+definitions:
+  server.createUserInput:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: API server for rock-paper-scissors game
+  title: ro-pa-sci API
+  version: "1.0"
+paths:
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: create account
+      operationId: create-account
+      parameters:
+      - description: account-info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/server.createUserInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: bool
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        default:
+          description: ""
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: SignUp
+      tags:
+      - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: session
+    type: apiKey
+swagger: "2.0"

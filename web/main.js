@@ -75,21 +75,21 @@ logoutBtn.addEventListener("click", () => {
 function handleWS() {
     webSocket = new WebSocket("ws://localhost:8080/auth/ws");
 
-    socket.onopen = () => {
+    webSocket.onopen = () => {
         console.log("Successfully Connected");
         showPlayersTop()
     };
 
-    socket.onclose = event => {
+    webSocket.onclose = event => {
         console.log("Socket Closed Connection: ", event);
         socket.send("Client Closed!")
     };
 
-    socket.onerror = error => {
+    webSocket.onerror = error => {
         console.log("Socket Error: ", error);
     };
 
-    socket.onmessage = function (e) {
+    webSocket.onmessage = function (e) {
         var server_message = e.data;
         console.log(server_message);
     };

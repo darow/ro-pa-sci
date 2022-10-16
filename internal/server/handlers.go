@@ -2,18 +2,40 @@ package server
 
 import (
 	"fmt"
+	"github.com/darow/ro-pa-sci/internal/model"
 	"net/http"
 	"time"
-
-	"rock-paper-scissors/internal/model"
 
 	"github.com/gin-gonic/gin"
 )
 
+type createUserInput struct {
+	Username string `json:"login" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// @Summary SignUp
+// @Tags auth
+// @Description create account
+// @ID create-account
+// @Accept json
+// @Produce json
+// @Param input body createUserInput true "account-info"
+// @Success 201 {bool} bool true
+// @Success 400 {object} map[string]string
+// @Failure default {object} map[string]string
+// @Router /user [post]
 func (s *server) createUser(c *gin.Context) {
+	var input createUserInput
+
+	if err := c.BindJSON(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+
 	u := &model.User{
-		Login:    c.PostForm("login"),
-		Password: c.PostForm("password"),
+		Username: input.Username,
+		Password: input.Password,
 	}
 
 	err := s.store.User().Create(u)

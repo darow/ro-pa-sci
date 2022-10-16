@@ -1,10 +1,13 @@
 package server
 
 import (
+	"github.com/darow/ro-pa-sci/internal/store"
 	"net/http"
 
-	"rock-paper-scissors/internal/store"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
+	_ "github.com/darow/ro-pa-sci/docs"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -39,6 +42,8 @@ func (s *server) configureRouter() {
 		filepath := "./web/" + c.Param("filename")
 		c.File(filepath)
 	})
+
+	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	s.router.POST("/user", s.createUser)
 	s.router.POST("/session", s.createSession)

@@ -1,10 +1,9 @@
 package server
 
 import (
+	"github.com/darow/ro-pa-sci/internal/store/teststore"
 	"net"
 	"net/http"
-
-	"rock-paper-scissors/internal/store/teststore"
 
 	"go.uber.org/zap"
 )

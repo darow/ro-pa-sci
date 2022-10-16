@@ -3,11 +3,10 @@ package teststore
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"github.com/darow/ro-pa-sci/internal/model"
+	"github.com/darow/ro-pa-sci/internal/store"
 	"strconv"
 	"time"
-
-	"rock-paper-scissors/internal/model"
-	"rock-paper-scissors/internal/store"
 )
 
 type SessionRepository struct {

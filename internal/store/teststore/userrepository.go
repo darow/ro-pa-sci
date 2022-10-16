@@ -2,10 +2,9 @@ package teststore
 
 import (
 	"errors"
+	"github.com/darow/ro-pa-sci/internal/model"
+	"github.com/darow/ro-pa-sci/internal/store"
 	"sort"
-
-	"rock-paper-scissors/internal/model"
-	"rock-paper-scissors/internal/store"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,7 +16,7 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) Create(u *model.User) error {
-	_, err := r.findByLogin(u.Login)
+	_, err := r.findByLogin(u.Username)
 	if err == nil {
 		return errors.New("пользователь с таким именем уже существует")
 	}
@@ -50,7 +49,7 @@ func (r *UserRepository) Login(login, password string) (*model.User, error) {
 
 func (r *UserRepository) findByLogin(login string) (*model.User, error) {
 	for _, u := range r.users {
-		if u.Login == login {
+		if u.Username == login {
 			return u, nil
 		}
 	}

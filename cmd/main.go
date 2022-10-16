@@ -1,12 +1,22 @@
 package main
 
 import (
+	"github.com/darow/ro-pa-sci/internal/server"
 	"log"
-
-	"rock-paper-scissors/internal/server"
 
 	"go.uber.org/zap"
 )
+
+// @title ro-pa-sci API
+// @version 1.0
+// @description API server for rock-paper-scissors game
+
+// @host localhost:8000
+// @BasePath /
+
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name session
 
 func main() {
 	logger, _ := zap.NewProduction()

@@ -1,6 +1,6 @@
 package store
 
-import "rock-paper-scissors/internal/model"
+import "github.com/darow/ro-pa-sci/internal/model"
 
 type UserRepository interface {
 	Create(*model.User) error

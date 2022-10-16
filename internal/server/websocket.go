@@ -2,9 +2,8 @@ package server
 
 import (
 	"fmt"
+	"github.com/darow/ro-pa-sci/internal/model"
 	"net/http"
-
-	"rock-paper-scissors/internal/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
