@@ -2,9 +2,10 @@ package server
 
 import (
 	"fmt"
-	"github.com/darow/ro-pa-sci/internal/model"
 	"net/http"
 	"time"
+
+	"github.com/darow/ro-pa-sci/internal/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,9 +22,8 @@ type createUserInput struct {
 // @Accept json
 // @Produce json
 // @Param input body createUserInput true "account-info"
-// @Success 201 {bool} bool true
-// @Success 400 {object} map[string]string
-// @Failure default {object} map[string]string
+// @Success 201 {boolean} boolean true
+// @Success 400 {object} any
 // @Router /user [post]
 func (s *server) createUser(c *gin.Context) {
 	var input createUserInput
@@ -38,13 +38,22 @@ func (s *server) createUser(c *gin.Context) {
 		Password: input.Password,
 	}
 
+	var input2 createUserInput
+	if err := c.BindJSON(&input2); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+	fmt.Println(input2)
+
 	err := s.store.User().Create(u)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, true)
+	s.createSession(c)
+
+	//c.JSON(http.StatusCr|eated, true)
 }
 
 func (s *server) createSession(c *gin.Context) {

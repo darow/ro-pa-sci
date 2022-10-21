@@ -36,18 +36,10 @@ paths:
         "201":
           description: Created
           schema:
-            type: bool
+            type: boolean
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        default:
-          description: ""
-          schema:
-            additionalProperties:
-              type: string
             type: object
       summary: SignUp
       tags:
