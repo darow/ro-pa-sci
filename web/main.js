@@ -9,9 +9,7 @@ const playersBtn = document.querySelector('#playersBtn')
 
 let ws = undefined
 
-checkAuth()
-showPlayersTop()
-
+checkAuth(showPlayersTop)
 
 playersBtn.addEventListener("click", () => {
     showPlayersTop()
@@ -30,12 +28,11 @@ loginBtn.addEventListener("click", () => {
                     body: new URLSearchParams(new FormData(event.target)) // event.target is the form
                 }).then((resp) => {
                     return resp.json();
-                }).then(async (body) => {
+                }).then((body) => {
                     if (body.error) {
                         document.querySelector('#error').textContent = body.error
                     } else {
-                        await checkAuth()
-                        showPlayersTop()
+                        checkAuth(showPlayersTop)
                     }
                 }).catch((error) => {
                     console.log(error)
@@ -61,8 +58,7 @@ signupBtn.addEventListener("click", () => {
                     if (body.error) {
                         document.querySelector('#error').textContent = body.error
                     } else {
-                        checkAuth()
-                        showPlayersTop()
+                        checkAuth(showPlayersTop)
                     }
                 }).catch((error) => {
                     console.log(error)
@@ -83,17 +79,18 @@ logoutBtn.addEventListener("click", () => {
         )
 })
 
-function refreshWS() {
+function refreshWS(callback) {
     if (ws!==undefined&&ws.readyState === WebSocket.OPEN) {
         ws.close()
     }
     ws = new WebSocket(`ws://${apiUri}/auth/ws`);
-    configureWS()
+    configureWS(callback)
 }
 
-function configureWS() {
+function configureWS(callback = () => {}) {
     ws.onopen = () => {
         console.log("Successfully Connected");
+        callback()
     };
 
     ws.onclose = event => {
@@ -127,7 +124,7 @@ function showPlayersTop() {
         });
 }
 
-function checkAuth() {
+function checkAuth(callback) {
     fetch("/auth/")
         .then((response) => response.json())
         .then((user) => {
@@ -135,7 +132,7 @@ function checkAuth() {
             loginBtn.style.display = "none"
             signupBtn.style.display = "none"
             usernameElem.innerHTML = user.login
-            refreshWS()
+            refreshWS(callback)
         }).catch((error) => {
         logoutBtn.style.display = "none"
         loginBtn.style.display = ""
