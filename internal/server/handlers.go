@@ -26,24 +26,24 @@ type createUserInput struct {
 // @Success 400 {object} any
 // @Router /user [post]
 func (s *server) createUser(c *gin.Context) {
-	var input createUserInput
-
-	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-		return
-	}
+	//var input createUserInput
+	//
+	//if err := c.BindJSON(&input); err != nil {
+	//	c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	//	return
+	//}
+	//
+	//u := &model.User{
+	//	Username: input.Username,
+	//	Password: input.Password,
+	//}
 
 	u := &model.User{
-		Username: input.Username,
-		Password: input.Password,
+		Username: c.PostForm("login"),
+		Password: c.PostForm("password"),
 	}
 
-	var input2 createUserInput
-	if err := c.BindJSON(&input2); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-		return
-	}
-	fmt.Println(input2)
+	fmt.Println(c.PostForm("login"))
 
 	err := s.store.User().Create(u)
 	if err != nil {

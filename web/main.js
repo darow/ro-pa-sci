@@ -1,12 +1,21 @@
+const apiUri = "localhost:8000"
+
 const contentElem = document.querySelector('#content')
 const loginBtn = document.querySelector('#login-btn')
 const signupBtn = document.querySelector('#signup-btn')
 const logoutBtn = document.querySelector('#logout-btn')
 const usernameElem = document.querySelector('#username')
-let webSocket = undefined
+const playersBtn = document.querySelector('#playersBtn')
 
-showPlayersTop()
+let ws = undefined
+
 checkAuth()
+showPlayersTop()
+
+
+playersBtn.addEventListener("click", () => {
+    showPlayersTop()
+})
 
 loginBtn.addEventListener("click", () => {
     fetch("/login.html")
@@ -21,11 +30,12 @@ loginBtn.addEventListener("click", () => {
                     body: new URLSearchParams(new FormData(event.target)) // event.target is the form
                 }).then((resp) => {
                     return resp.json();
-                }).then((body) => {
+                }).then(async (body) => {
                     if (body.error) {
                         document.querySelector('#error').textContent = body.error
                     } else {
-                        checkAuth()
+                        await checkAuth()
+                        showPlayersTop()
                     }
                 }).catch((error) => {
                     console.log(error)
@@ -51,7 +61,8 @@ signupBtn.addEventListener("click", () => {
                     if (body.error) {
                         document.querySelector('#error').textContent = body.error
                     } else {
-                        document.querySelector('#login-btn').click()
+                        checkAuth()
+                        showPlayersTop()
                     }
                 }).catch((error) => {
                     console.log(error)
@@ -72,25 +83,30 @@ logoutBtn.addEventListener("click", () => {
         )
 })
 
-function handleWS() {
-    webSocket = new WebSocket("ws://localhost:8080/auth/ws");
+function refreshWS() {
+    if (ws!==undefined&&ws.readyState === WebSocket.OPEN) {
+        ws.close()
+    }
+    ws = new WebSocket(`ws://${apiUri}/auth/ws`);
+    configureWS()
+}
 
-    webSocket.onopen = () => {
+function configureWS() {
+    ws.onopen = () => {
         console.log("Successfully Connected");
-        showPlayersTop()
     };
 
-    webSocket.onclose = event => {
+    ws.onclose = event => {
         console.log("Socket Closed Connection: ", event);
-        socket.send("Client Closed!")
+        ws.send("Client Closed!")
     };
 
-    webSocket.onerror = error => {
+    ws.onerror = error => {
         console.log("Socket Error: ", error);
     };
 
-    webSocket.onmessage = function (e) {
-        var server_message = e.data;
+    ws.onmessage = function (e) {
+        let server_message = e.data;
         console.log(server_message);
     };
 }
@@ -119,7 +135,7 @@ function checkAuth() {
             loginBtn.style.display = "none"
             signupBtn.style.display = "none"
             usernameElem.innerHTML = user.login
-            handleWS()
+            refreshWS()
         }).catch((error) => {
         logoutBtn.style.display = "none"
         loginBtn.style.display = ""
