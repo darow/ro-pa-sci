@@ -19,41 +19,24 @@ type createUserInput struct {
 // @Tags auth
 // @Description create account
 // @ID create-account
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
-// @Param input body createUserInput true "account-info"
+// @Param input formData model.User true "login-pass"
 // @Success 201 {boolean} boolean true
 // @Success 400 {object} any
 // @Router /user [post]
 func (s *server) createUser(c *gin.Context) {
-	//var input createUserInput
-	//
-	//if err := c.BindJSON(&input); err != nil {
-	//	c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-	//	return
-	//}
-	//
-	//u := &model.User{
-	//	Username: input.Username,
-	//	Password: input.Password,
-	//}
-
 	u := &model.User{
 		Username: c.PostForm("login"),
 		Password: c.PostForm("password"),
 	}
-
-	fmt.Println(c.PostForm("login"))
 
 	err := s.store.User().Create(u)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
 	}
-
 	s.createSession(c)
-
-	//c.JSON(http.StatusCr|eated, true)
 }
 
 func (s *server) createSession(c *gin.Context) {

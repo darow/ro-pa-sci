@@ -18,27 +18,17 @@ const docTemplate = `{
     "paths": {
         "/user": {
             "post": {
-                "description": "create account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "SignUp",
-                "operationId": "create-account",
                 "parameters": [
                     {
-                        "description": "account-info",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.createUserInput"
-                        }
+                        "type": "string",
+                        "name": "login",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -54,23 +44,6 @@ const docTemplate = `{
                             "type": "object"
                         }
                     }
-                }
-            }
-        }
-    },
-    "definitions": {
-        "server.createUserInput": {
-            "type": "object",
-            "required": [
-                "login",
-                "password"
-            ],
-            "properties": {
-                "login": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
                 }
             }
         }

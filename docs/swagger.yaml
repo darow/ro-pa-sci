@@ -1,15 +1,4 @@
 basePath: /
-definitions:
-  server.createUserInput:
-    properties:
-      login:
-        type: string
-      password:
-        type: string
-    required:
-    - login
-    - password
-    type: object
 host: localhost:8000
 info:
   contact: {}
@@ -19,19 +8,14 @@ info:
 paths:
   /user:
     post:
-      consumes:
-      - application/json
-      description: create account
-      operationId: create-account
       parameters:
-      - description: account-info
-        in: body
-        name: input
+      - in: formData
+        name: login
+        type: string
+      - in: formData
+        name: password
         required: true
-        schema:
-          $ref: '#/definitions/server.createUserInput'
-      produces:
-      - application/json
+        type: string
       responses:
         "201":
           description: Created
@@ -41,9 +25,6 @@ paths:
           description: Bad Request
           schema:
             type: object
-      summary: SignUp
-      tags:
-      - auth
 securityDefinitions:
   ApiKeyAuth:
     in: header

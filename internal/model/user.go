@@ -8,12 +8,12 @@ import (
 )
 
 type User struct {
-	ID                int    `json:"id"`
+	ID                int    `json:"id" swaggerignore:"true"`
 	Username          string `json:"login"`
-	Password          string `json:"password,omitempty"`
+	Password          string `json:"password,omitempty" binding:"required"`
 	EncryptedPassword []byte `json:"-"`
-	IsOnline          bool   `json:"is_online"`
-	Score             int    `json:"score"`
+	IsOnline          bool   `json:"is_online" swaggerignore:"true"`
+	Score             int    `json:"score" swaggerignore:"true"`
 }
 
 // BeforeCreate TODO Сюда можно добавить валидацию
