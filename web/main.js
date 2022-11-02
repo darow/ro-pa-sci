@@ -114,8 +114,12 @@ function showPlayersTop() {
         .then((data) => {
             let playersList = ""
             let counter = 1
-            for (const [key, value] of Object.entries(data)) {
-                playersList += `<li>${counter}. ${value.login} ${value.is_online} ${value.score}</li>`
+            for (const [key, user] of Object.entries(data)) {
+                let btn = ``
+                if (user.is_online) {
+                    btn = `<btn id="invite-${user.id}" class="btn btn-sm btn-success btn-block">пригласить✉</btn>`
+                }
+                playersList += `<li class="m-1">${counter}. ${user.login} ${user.is_online} ${user.score} ${btn}</li>`
                 counter++
             }
 
