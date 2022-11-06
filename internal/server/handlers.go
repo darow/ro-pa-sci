@@ -1,89 +1,19 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
-	"time"
-
-	"github.com/darow/ro-pa-sci/internal/model"
 
 	"github.com/gin-gonic/gin"
 )
 
-type createUserInput struct {
-	Username string `json:"login" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
-// @Summary SignUp
-// @Tags auth
-// @Description create account
-// @ID create-account
-// @Accept multipart/form-data
+// @Summary GetUsersList
+// @Tags playersList
+// @Description get list of all users
+// @ID users-list
 // @Produce json
-// @Param input formData model.User true "login-pass"
-// @Success 201 {boolean} boolean true
+// @Success 200 {object} any "user data"
 // @Success 400 {object} any
-// @Router /user [post]
-func (s *server) createUser(c *gin.Context) {
-	u := &model.User{
-		Username: c.PostForm("login"),
-		Password: c.PostForm("password"),
-	}
-
-	err := s.store.User().Create(u)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-		return
-	}
-	s.createSession(c)
-}
-
-func (s *server) createSession(c *gin.Context) {
-	u, err := s.store.User().Login(c.PostForm("login"), c.PostForm("password"))
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
-		return
-	}
-
-	session, err := s.store.Session().Create(u)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		return
-	}
-
-	c.SetCookie("session", session.Token, int(session.ExpirationTime.Sub(time.Now()).Seconds()), "", "", false, false)
-	c.JSON(http.StatusCreated, u)
-}
-
-func (s *server) whoAmI(c *gin.Context) {
-	u, ok := c.Get(ctxUserKey)
-	if !ok {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объекта с ключом не существует", ErrNotFoundInContext))
-	}
-	user, ok := u.(*model.User)
-	if !ok {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объект имеет некорректный тип", ErrNotFoundInContext))
-	}
-
-	c.JSON(http.StatusCreated, user)
-}
-
+// @Router /online_users [get]
 func (s *server) getOnlineUsers(c *gin.Context) {
-	c.JSON(http.StatusCreated, s.store.User().GetTop())
-}
-
-func (s *server) logout(c *gin.Context) {
-	u, ok := c.Get(ctxUserKey)
-	if !ok {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объекта с ключом не существует", ErrNotFoundInContext))
-	}
-	user, ok := u.(*model.User)
-	if !ok {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объект имеет некорректный тип", ErrNotFoundInContext))
-	}
-
-	user.IsOnline = false
-	c.SetCookie("session", "", -1, "", "", false, false)
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, s.store.User().GetTop())
 }

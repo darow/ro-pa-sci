@@ -16,12 +16,139 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/user": {
+        "/auth/": {
+            "get": {
+                "description": "check current user",
+                "tags": [
+                    "auth"
+                ],
+                "summary": "WhoAmI",
+                "operationId": "who-am-i",
+                "responses": {
+                    "200": {
+                        "description": "user data",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "get": {
+                "description": "delete session cookie",
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout",
+                "operationId": "logout",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/online_users": {
+            "get": {
+                "description": "get list of all users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playersList"
+                ],
+                "summary": "GetUsersList",
+                "operationId": "users-list",
+                "responses": {
+                    "200": {
+                        "description": "user data",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/session": {
             "post": {
+                "description": "create session for existing account",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "operationId": "create-session",
                 "parameters": [
                     {
                         "type": "string",
-                        "name": "login",
+                        "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "user data",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/user": {
+            "post": {
+                "description": "create account",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "SignUp",
+                "operationId": "create-account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "name",
                         "in": "formData"
                     },
                     {
@@ -35,15 +162,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "type": "boolean"
+                            "$ref": "#/definitions/model.User"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "user data",
                         "schema": {
                             "type": "object"
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.User": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         }

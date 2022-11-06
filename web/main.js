@@ -119,7 +119,7 @@ function showPlayersTop() {
                 if (user.is_online) {
                     btn = `<btn id="invite-${user.id}" class="btn btn-sm btn-success btn-block">пригласить✉</btn>`
                 }
-                playersList += `<li class="m-1">${counter}. ${user.login} ${user.is_online} ${user.score} ${btn}</li>`
+                playersList += `<li class="m-1">${counter}. ${user.name} ${user.is_online} ${user.score} ${btn}</li>`
                 counter++
             }
 
@@ -135,7 +135,7 @@ function checkAuth(callback) {
             logoutBtn.style.display = ""
             loginBtn.style.display = "none"
             signupBtn.style.display = "none"
-            usernameElem.innerHTML = user.login
+            usernameElem.innerHTML = user.name
             refreshWS(callback)
         }).catch((error) => {
         logoutBtn.style.display = "none"

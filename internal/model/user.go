@@ -9,7 +9,7 @@ import (
 
 type User struct {
 	ID                int    `json:"id" swaggerignore:"true"`
-	Username          string `json:"login"`
+	Username          string `json:"name"`
 	Password          string `json:"password,omitempty" binding:"required"`
 	EncryptedPassword []byte `json:"-"`
 	IsOnline          bool   `json:"is_online" swaggerignore:"true"`

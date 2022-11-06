@@ -1,4 +1,14 @@
 basePath: /
+definitions:
+  model.User:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - password
+    type: object
 host: localhost:8000
 info:
   contact: {}
@@ -6,25 +16,110 @@ info:
   title: ro-pa-sci API
   version: "1.0"
 paths:
-  /user:
+  /auth/:
+    get:
+      description: check current user
+      operationId: who-am-i
+      responses:
+        "200":
+          description: user data
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: WhoAmI
+      tags:
+      - auth
+  /auth/logout:
+    get:
+      description: delete session cookie
+      operationId: logout
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: Logout
+      tags:
+      - auth
+  /online_users:
+    get:
+      description: get list of all users
+      operationId: users-list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user data
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+      summary: GetUsersList
+      tags:
+      - playersList
+  /session:
     post:
+      consumes:
+      - multipart/form-data
+      description: create session for existing account
+      operationId: create-session
       parameters:
       - in: formData
-        name: login
+        name: name
         type: string
       - in: formData
         name: password
         required: true
         type: string
+      produces:
+      - application/json
       responses:
         "201":
-          description: Created
+          description: user data
           schema:
-            type: boolean
+            type: object
         "400":
           description: Bad Request
           schema:
             type: object
+      summary: Login
+      tags:
+      - auth
+  /user:
+    post:
+      consumes:
+      - multipart/form-data
+      description: create account
+      operationId: create-account
+      parameters:
+      - in: formData
+        name: name
+        type: string
+      - in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: user data
+          schema:
+            type: object
+      summary: SignUp
+      tags:
+      - auth
 securityDefinitions:
   ApiKeyAuth:
     in: header
