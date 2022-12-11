@@ -3,46 +3,35 @@ package server
 import (
 	"fmt"
 	"github.com/darow/ro-pa-sci/internal/model"
-	"net/http"
+	"sync"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
-func (s *server) wsHandler() func(c *gin.Context) {
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	return func(c *gin.Context) {
-		u, ok := c.Get(ctxUserKey)
-		if !ok {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объекта с ключом не существует", ErrNotFoundInContext))
-		}
-		user, ok := u.(*model.User)
-		if !ok {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объект имеет некорректный тип", ErrNotFoundInContext))
-		}
-
-		ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-
-		user.IsOnline = true
-		s.reader(ws, user)
-	}
+type wsHub struct {
+	sync.Mutex
+	users map[int]*websocket.Conn
 }
 
-func (s *server) reader(conn *websocket.Conn, user *model.User) {
+func (h *wsHub) AddUser(userID int, con *websocket.Conn) {
+	h.Lock()
+	h.users[userID] = con
+	h.Unlock()
+}
+
+func (h *wsHub) PopUser(userID int) {
+	h.Lock()
+	delete(h.users, userID)
+	h.Unlock()
+}
+
+func (s *server) handleWS(user *model.User, conn *websocket.Conn) {
+	s.hub.AddUser(user.ID, conn)
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
 			user.IsOnline = false
+			s.hub.PopUser(user.ID)
 			s.logger.Error(err)
 			return
 		}

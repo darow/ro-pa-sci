@@ -16,6 +16,7 @@ type server struct {
 	store  store.Store
 	router *gin.Engine
 	logger *zap.SugaredLogger
+	hub    *wsHub
 }
 
 // ServeHTTP server должен удовлетворять интерфейсу http.Handler
