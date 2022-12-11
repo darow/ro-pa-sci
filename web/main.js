@@ -14,16 +14,16 @@ playersBtn.addEventListener('click', () => {
     showPlayersTop()
 })
 
-loginBtn.addEventListener('click', () => {
+loginBtn.addEventListener('click', async () => {
     try {
-        fetchTemplate('/login.html', 'loginForm')
+        await fetchTemplate('/login.html', 'loginForm')
     } catch (error) {
         console.log(error)
     }
 })
-signupBtn.addEventListener('click', () => {
+signupBtn.addEventListener('click', async () => {
     try {
-        fetchTemplate('/signup.html', 'signupForm')
+        await fetchTemplate('/signup.html', 'signupForm')
     } catch (error) {
         console.log(error)
     }
@@ -54,16 +54,14 @@ async function handleSubmitForm(event) {
     checkAuth(showPlayersTop)
 }
 
-logoutBtn.addEventListener('click', () => {
-    fetch('/auth/logout')
-        .then((response) => {
-                if (response.status == 200) {
-                    checkAuth()
-                }
+logoutBtn.addEventListener('click', async () => {
+    const response = await fetch('/auth/logout')
 
-                showPlayersTop()
-            }
-        )
+    if (response.status === 200) {
+        await checkAuth()
+    }
+
+    await showPlayersTop()
 })
 
 function refreshWS(callback) {
