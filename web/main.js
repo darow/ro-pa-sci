@@ -110,7 +110,7 @@ function createWebSocket(url, options, handlerCallbacks) {
         },
     }
 
-    const webSocket = new WebSocket(url, options)
+    const webSocket = new WebSocket(url)
 
     document.forms['socketForm'].addEventListener('submit', (event) => {
         event.preventDefault();
@@ -122,6 +122,7 @@ function createWebSocket(url, options, handlerCallbacks) {
         webSocket.addEventListener(event, handlers[event])
     })
 
+    options.open()
     return webSocket
 }
 
@@ -161,6 +162,7 @@ async function checkAuth(callback) {
         usernameElem.innerHTML = user.name
         refreshWS(callback)
     } catch (error) {
+        console.log(error)
         logoutBtn.hidden = true
         loginBtn.hidden = false
         signupBtn.hidden = false

@@ -1,8 +1,10 @@
 package server
 
 import (
-	"github.com/darow/ro-pa-sci/internal/store"
 	"net/http"
+
+	"github.com/darow/ro-pa-sci/internal/store"
+	"github.com/gorilla/websocket"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -29,6 +31,7 @@ func newServer(store store.Store, logger *zap.SugaredLogger) *server {
 		store:  store,
 		router: gin.Default(),
 		logger: logger,
+		hub:    &wsHub{users: make(map[int]*websocket.Conn)},
 	}
 
 	s.configureRouter()
