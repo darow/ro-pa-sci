@@ -2,8 +2,9 @@ package server
 
 import (
 	"fmt"
-	"github.com/darow/ro-pa-sci/internal/model"
 	"net/http"
+
+	"github.com/darow/ro-pa-sci/internal/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -46,9 +47,8 @@ func (s *server) reader(conn *websocket.Conn, user *model.User) {
 			s.logger.Error(err)
 			return
 		}
-		fmt.Println(string(p))
 
-		if err := conn.WriteMessage(messageType, []byte("message recieved")); err != nil {
+		if err = conn.WriteMessage(messageType, []byte("message recieved:"+string(p))); err != nil {
 			s.logger.Error(err)
 			return
 		}

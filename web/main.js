@@ -92,26 +92,13 @@ function configureWS(callback = () => {}) {
     ws.onopen = () => {
         console.log("Successfully Connected");
         callback()
-
-        document.forms['socketForm'].addEventListener('submit', (event) => {
-            event.preventDefault();
-            // TODO do something here to show user that form is being submitted
-            fetch(event.target.action, {
-                method: 'POST',
-                body: new URLSearchParams(new FormData(event.target)) // event.target is the form
-            }).then((resp) => {
-                return resp.json();
-            }).then((body) => {
-                if (body.error) {
-                    document.querySelector('#error').textContent = body.error
-                } else {
-                    checkAuth(showPlayersTop)
-                }
-            }).catch((error) => {
-                console.log(error)
-            });
-        });
     };
+
+    document.forms['socketForm'].addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        ws.send(event.target.childNodes[1].value)
+    });
 
     ws.onclose = event => {
         console.log("Socket Closed Connection: ", event);
