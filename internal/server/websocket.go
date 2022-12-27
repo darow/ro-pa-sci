@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/darow/ro-pa-sci/internal/model"
 
@@ -14,30 +15,31 @@ import (
 
 type wsHub struct {
 	sync.Mutex
-	users map[int]*websocket.Conn
+	userCons map[int]*websocket.Conn
 }
 
 func (h *wsHub) AddUser(userID int, con *websocket.Conn) {
 	h.Lock()
-	h.users[userID] = con
+	h.userCons[userID] = con
 	h.Unlock()
 }
 
 func (h *wsHub) PopUser(userID int) {
 	h.Lock()
-	delete(h.users, userID)
+	delete(h.userCons, userID)
 	h.Unlock()
 }
 
 type wsRequest struct {
-	userID int
-	Action string `json:"action,omitempty"`
-	Body   string `json:"body,omitempty"`
+	messageType int
+	userFrom    *model.User
+	Action      string          `json:"action"`
+	Body        json.RawMessage `json:"body"`
 }
 
 type wsResponse struct {
-	Code int    `json:"code"`
-	Body string `json:"body"`
+	Code int    `json:"code,omitempty"`
+	Body string `json:"body,omitempty"`
 }
 
 func (s *server) handleWS(user *model.User, conn *websocket.Conn) {
@@ -52,7 +54,10 @@ func (s *server) handleWS(user *model.User, conn *websocket.Conn) {
 		}
 		fmt.Println(string(p))
 
-		var request wsRequest
+		request := wsRequest{
+			messageType: messageType,
+			userFrom:    user,
+		}
 		err = json.Unmarshal(p, &request)
 
 		resp := s.wsProcess(request)
@@ -74,13 +79,48 @@ func (s *server) handleWS(user *model.User, conn *websocket.Conn) {
 
 func (s *server) wsProcess(r wsRequest) *wsResponse {
 	switch r.Action {
-	case "sendGameInvite":
-		s.sendGameInvite(r)
+	case "invite":
+		return s.createInvite(r)
 	}
 
 	return &wsResponse{Code: http.StatusBadRequest, Body: "action not found"}
 }
 
-func (s *server) sendGameInvite(r wsRequest) *wsResponse {
-	return &wsResponse{Code: http.StatusOK, Body: "Траляля пригласили игрока с id(нет)" + strconv.Itoa(r.userID)}
+func (s *server) createInvite(r wsRequest) *wsResponse {
+	var invite model.Invite
+	err := json.Unmarshal(r.Body, &invite)
+	if err != nil {
+		return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
+	}
+
+	invite.From = r.userFrom.ID
+	invite.Timestamp = time.Now()
+
+	conTo, ok := s.hub.userCons[invite.To]
+	if !ok {
+		return &wsResponse{Code: http.StatusBadRequest, Body: "Игрока с таким id сейчас нет в сети"}
+	}
+
+	// Обработали wsRequest. Изменяем его для отправки
+	body := struct {
+		From int `json:"from"`
+	}{
+		invite.From,
+	}
+	r.Body, err = json.Marshal(body)
+	if err != nil {
+		return &wsResponse{Code: http.StatusInternalServerError, Body: err.Error()}
+	}
+
+	payload, err := json.Marshal(r)
+	if err != nil {
+		return &wsResponse{Code: http.StatusInternalServerError, Body: err.Error()}
+	}
+
+	if err = conTo.WriteMessage(r.messageType, payload); err != nil {
+		s.logger.Warn(err)
+		return &wsResponse{Code: http.StatusInternalServerError, Body: err.Error()}
+	}
+
+	return &wsResponse{Code: http.StatusOK, Body: "пригласили игрока № " + strconv.Itoa(r.userFrom.ID)}
 }

@@ -6,7 +6,6 @@ const signupBtn = document.querySelector('#signup-btn')
 const logoutBtn = document.querySelector('#logout-btn')
 const usernameElem = document.querySelector('#username')
 const playersBtn = document.querySelector('#playersBtn')
-const socketSendBtn = document.querySelector('#socketSendBtn')
 
 let ws
 
@@ -110,20 +109,14 @@ function createWebSocket(url, options, handlerCallbacks) {
         },
     }
 
-    const webSocket = new WebSocket(url)
+    wsLocal = new WebSocket(url)
+    configureWS(wsLocal, options.open)
 
-    document.forms['socketForm'].addEventListener('submit', (event) => {
-        event.preventDefault();
+    // Object.values(eventNames).forEach(event => {
+    //     webSocket.addEventListener(event, handlers[event])
+    // })
 
-        webSocket.send(event.target.childNodes[1].value)
-    });
-
-    Object.values(eventNames).forEach(event => {
-        webSocket.addEventListener(event, handlers[event])
-    })
-
-    options.open()
-    return webSocket
+    return wsLocal
 }
 
 function closeWebSocket(webSocket) {
@@ -132,6 +125,28 @@ function closeWebSocket(webSocket) {
     }
 
     webSocket.close()
+}
+
+function configureWS(wsLocal, callback = () => {}) {
+    wsLocal.onopen = () => {
+        console.log("я онлайн");
+        callback()
+    };
+
+    wsLocal.onclose = () => {
+        console.log("я офлайн");
+        callback()
+    };
+
+    document.forms['socketForm'].addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        wsLocal.send(event.target.childNodes[1].value)
+    });
+
+    wsLocal.onmessage = function (e) {
+        console.log(e.data);
+    };
 }
 
 async function showPlayersTop() {
@@ -148,7 +163,7 @@ async function showPlayersTop() {
 function getUserInfoElement({ name, is_online, score, id }) {
     const inviteButton = `<btn id="invite-${id}" class="btn btn-sm btn-success btn-block">пригласить✉</btn>`
 
-    return `${name} ${is_online} ${score} ${inviteButton}`
+    return `${name} id - "${id}" ${is_online} ${score} ${inviteButton}`
 }
 
 async function checkAuth(callback) {
@@ -162,6 +177,9 @@ async function checkAuth(callback) {
         usernameElem.innerHTML = user.name
         refreshWS(callback)
     } catch (error) {
+        if (ws != undefined) {
+            ws.close()
+        }
         console.log(error)
         logoutBtn.hidden = true
         loginBtn.hidden = false

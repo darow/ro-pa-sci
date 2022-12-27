@@ -18,3 +18,7 @@ type PlayerRepository interface {
 	New(string) (*model.Session, error)
 	All() (*model.Session, error)
 }
+
+type InviteRepository interface {
+	Create(*model.Invite) error
+}
