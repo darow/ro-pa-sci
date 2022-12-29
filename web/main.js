@@ -6,10 +6,16 @@ const signupBtn = document.querySelector('#signup-btn')
 const logoutBtn = document.querySelector('#logout-btn')
 const usernameElem = document.querySelector('#username')
 const playersBtn = document.querySelector('#playersBtn')
+const invitesBtn = document.querySelector('#invitesBtn')
 
+let currentUser
 let ws
 
 checkAuth(showPlayersTop)
+
+invitesBtn.addEventListener('click', () => {
+    showInvites()
+})
 
 playersBtn.addEventListener('click', () => {
     showPlayersTop()
@@ -149,6 +155,17 @@ function configureWS(wsLocal, callback = () => {}) {
     };
 }
 
+async function showInvites() {
+    const response = await fetch('/auth/invites')
+    const data = await response.json()
+
+    const inviteList = Object.values(data).map((invite, index) => {
+        return `<li class="m-1">${invite.id}. от: ${invite.from} кому:${invite.to} ${invite.created!=undefined?invite.created:""}</li>`
+    })
+
+    contentElem.innerHTML = playersTemplate.formatUnicorn({ playerList: inviteList });
+}
+
 async function showPlayersTop() {
     const response = await fetch('/online_users')
     const data = await response.json()
@@ -158,10 +175,23 @@ async function showPlayersTop() {
     })
 
     contentElem.innerHTML = playersTemplate.formatUnicorn({ playerList: playersList });
+
+    Object.values(data).map((user) => {
+        if (user.id == currentUser.id) {
+            return
+        }
+        let inviteBtn = document.querySelector(`#invite-${user.id}`)
+        inviteBtn.addEventListener('click', () => {
+            ws.send(`{"action": "createInvite", "body":{"to":${user.id}}}`)
+        })
+    })
 }
 
 function getUserInfoElement({ name, is_online, score, id }) {
-    const inviteButton = `<btn id="invite-${id}" class="btn btn-sm btn-success btn-block">пригласить✉</btn>`
+    let inviteButton = `<btn id="invite-${id}" class="btn btn-sm btn-success btn-block">пригласить✉</btn>`
+    if (id == currentUser.id) {
+        inviteButton = ''
+    }
 
     return `${name} id - "${id}" ${is_online} ${score} ${inviteButton}`
 }
@@ -175,6 +205,7 @@ async function checkAuth(callback) {
         loginBtn.hidden = true
         signupBtn.hidden = true
         usernameElem.innerHTML = user.name
+        currentUser = user
         refreshWS(callback)
     } catch (error) {
         if (ws != undefined) {

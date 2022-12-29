@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,10 +8,6 @@ import (
 )
 
 type ctxKey uint8
-
-var (
-	ErrNotFoundInContext = errors.New("пользователь не найден в контексте запроса")
-)
 
 const (
 	ctxRequestIDKey = "request_id"

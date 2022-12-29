@@ -2,10 +2,11 @@ package server
 
 import (
 	"fmt"
-	"github.com/darow/ro-pa-sci/internal/model"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+
+	"github.com/darow/ro-pa-sci/internal/model"
+	"github.com/gin-gonic/gin"
 )
 
 // @Summary SignUp
@@ -79,6 +80,34 @@ func (s *server) whoAmI(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+// @Summary GetInvites
+// @Tags auth
+// @Description get invites that sent from me and to me
+// @ID get-invites
+// @Success 200 {object} any "invites"
+// @Success 400 {object} any
+// @Router /invites [get]
+func (s *server) getInvites(c *gin.Context) {
+	u, ok := c.Get(ctxUserKey)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объекта с ключом не существует", ErrNotFoundInContext))
+		return
+	}
+	user, ok := u.(*model.User)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%w объект имеет некорректный тип", ErrNotFoundInContext))
+		return
+	}
+
+	invites, err := s.store.Invite().GetByUser(user.ID)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, invites)
 }
 
 // @Summary Logout

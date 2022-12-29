@@ -31,7 +31,10 @@ func newServer(store store.Store, logger *zap.SugaredLogger) *server {
 		store:  store,
 		router: gin.Default(),
 		logger: logger,
-		hub:    &wsHub{userCons: make(map[int]*websocket.Conn)},
+		hub: &wsHub{
+			userCons: make(map[int]*websocket.Conn),
+			logger:   logger,
+		},
 	}
 
 	s.configureRouter()
@@ -55,6 +58,7 @@ func (s *server) configureRouter() {
 
 	authorized := s.router.Group("/auth", s.auth)
 	authorized.GET("/", s.whoAmI)
+	authorized.GET("/invites", s.getInvites)
 	authorized.GET("/logout", s.logout)
 	authorized.GET("/ws", s.wsHandler())
 }

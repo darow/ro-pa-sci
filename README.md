@@ -7,6 +7,16 @@ go run ./cmd/
 
 ### websocket команды
 
+создать приглашение
 ```shell
-  {"action":"invite", "body":{"to":1}}
+  {"action":"createInvite", "body":{"to":1}}
 ```
+
+ответить на приглашение
+decision 
+0 - отклонить
+1 - принять
+```shell
+  {"action":"decideInvite", "body":{"inviteID":1, "decision":0}}
+```
+

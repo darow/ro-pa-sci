@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/darow/ro-pa-sci/internal/model"
+	"go.uber.org/zap"
 
 	"github.com/gorilla/websocket"
 )
@@ -16,6 +16,7 @@ import (
 type wsHub struct {
 	sync.Mutex
 	userCons map[int]*websocket.Conn
+	logger   *zap.SugaredLogger
 }
 
 func (h *wsHub) AddUser(userID int, con *websocket.Conn) {
@@ -28,6 +29,32 @@ func (h *wsHub) PopUser(userID int) {
 	h.Lock()
 	delete(h.userCons, userID)
 	h.Unlock()
+}
+
+func (s *wsHub) writeResponseWS(conn *websocket.Conn, resp *wsResponse) {
+	buf, err := json.Marshal(resp)
+	if err != nil {
+		err = fmt.Errorf("ошибка при записи ответа. %w", err)
+		if err = conn.WriteMessage(1, []byte("error:"+string(err.Error()))); err != nil {
+			s.logger.Error(err)
+			return
+		}
+	}
+
+	if err = conn.WriteMessage(1, buf); err != nil {
+		s.logger.Error(err)
+		return
+	}
+}
+
+func (h *wsHub) broadcast(msg string, cons ...*websocket.Conn) {
+	for _, con := range cons {
+		con.WriteMessage(1, []byte(msg))
+	}
+}
+
+func (h *wsHub) StartGame(con1, con2 *websocket.Conn) (int, error) {
+	return 0, nil
 }
 
 type wsRequest struct {
@@ -62,28 +89,75 @@ func (s *server) handleWS(user *model.User, conn *websocket.Conn) {
 
 		resp := s.wsProcess(request)
 
-		buf, err := json.Marshal(resp)
-		if err != nil {
-			if err = conn.WriteMessage(messageType, []byte("error:"+string(err.Error()))); err != nil {
-				s.logger.Error(err)
-				return
-			}
-		}
-
-		if err = conn.WriteMessage(messageType, buf); err != nil {
-			s.logger.Error(err)
-			return
-		}
+		s.hub.writeResponseWS(conn, resp)
 	}
 }
 
 func (s *server) wsProcess(r wsRequest) *wsResponse {
 	switch r.Action {
-	case "invite":
+	case "createInvite":
 		return s.createInvite(r)
+	case "decideInvite":
+		return s.decideInvite(r)
 	}
 
 	return &wsResponse{Code: http.StatusBadRequest, Body: "action not found"}
+}
+
+func (s *server) decideInvite(r wsRequest) *wsResponse {
+	var request struct {
+		InviteID int   `json:"inviteID"`
+		Decision uint8 `json:"decision"`
+	}
+	err := json.Unmarshal(r.Body, &request)
+	if err != nil {
+		return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
+	}
+
+	inv, err := s.store.Invite().Get(request.InviteID)
+	if err != nil {
+		return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
+	}
+
+	if inv.To != r.userFrom.ID {
+		return &wsResponse{Code: http.StatusForbidden, Body: fmt.Errorf("%w вы не являетесь получателем приглашения", ErrForbidden).Error()}
+	}
+
+	if _, ok := model.Decisions[request.Decision]; !ok {
+		return &wsResponse{Code: http.StatusBadRequest, Body: "нет такого ответа на приглашение"}
+	}
+
+	if request.Decision == model.DecisionAccepted {
+		var ok bool
+		var con1, con2 *websocket.Conn
+		if con1, ok = s.hub.userCons[r.userFrom.ID]; !ok {
+			return &wsResponse{Code: http.StatusBadRequest, Body: "на сервере нет вашего подключения. обновите страницу"}
+		}
+
+		s.hub.writeResponseWS(con1, &wsResponse{Code: http.StatusOK})
+
+		if con2, ok = s.hub.userCons[inv.From]; !ok {
+			return &wsResponse{Code: http.StatusBadRequest, Body: "пользователь отправивший приглашение не онлайн"}
+		}
+
+		var winner int
+		// возвращать ошибку из startGame в самом крайнем случае, чтобы записать decision
+		winner, err = s.hub.StartGame(con1, con2)
+		if err != nil {
+			return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
+		}
+
+		//TODO
+		_ = winner
+	}
+
+	inv.Decision = request.Decision
+	err = s.store.Invite().Update(inv)
+	if err != nil {
+		return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
+	}
+
+	return &wsResponse{Code: http.StatusOK}
 }
 
 func (s *server) createInvite(r wsRequest) *wsResponse {
@@ -93,21 +167,23 @@ func (s *server) createInvite(r wsRequest) *wsResponse {
 		return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
 	}
 
+	if invite.To == r.userFrom.ID {
+		return &wsResponse{Code: http.StatusBadRequest, Body: "from == to. нельзя пригласить себя"}
+	}
+
 	invite.From = r.userFrom.ID
-	invite.Timestamp = time.Now()
 
 	conTo, ok := s.hub.userCons[invite.To]
 	if !ok {
-		return &wsResponse{Code: http.StatusBadRequest, Body: "Игрока с таким id сейчас нет в сети"}
+		return &wsResponse{Code: http.StatusBadRequest, Body: "игрока с таким id сейчас нет в сети"}
 	}
 
-	// Обработали wsRequest. Изменяем его для отправки
-	body := struct {
-		From int `json:"from"`
-	}{
-		invite.From,
+	err = s.store.Invite().Create(&invite)
+	if err != nil {
+		return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
 	}
-	r.Body, err = json.Marshal(body)
+
+	r.Body, err = json.Marshal(invite)
 	if err != nil {
 		return &wsResponse{Code: http.StatusInternalServerError, Body: err.Error()}
 	}

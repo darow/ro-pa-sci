@@ -8,6 +8,7 @@ import (
 type Store struct {
 	userRepository    *UserRepository
 	sessionRepository *SessionRepository
+	inviteRepository  *InviteRepository
 }
 
 func New() *Store {
@@ -37,4 +38,16 @@ func (s *Store) Session() store.SessionRepository {
 		sessions: make(map[int]*model.Session),
 	}
 	return s.sessionRepository
+}
+
+func (s *Store) Invite() store.InviteRepository {
+	if s.inviteRepository != nil {
+		return s.inviteRepository
+	}
+
+	s.inviteRepository = &InviteRepository{
+		store:   s,
+		invites: make(map[int]*model.Invite),
+	}
+	return s.inviteRepository
 }

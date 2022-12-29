@@ -21,4 +21,7 @@ type PlayerRepository interface {
 
 type InviteRepository interface {
 	Create(*model.Invite) error
+	Update(invite *model.Invite) error
+	Get(id int) (*model.Invite, error)
+	GetByUser(int) ([]*model.Invite, error)
 }
