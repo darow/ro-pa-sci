@@ -25,3 +25,8 @@ type InviteRepository interface {
 	Get(id int) (*model.Invite, error)
 	GetByUser(int) ([]*model.Invite, error)
 }
+
+type GameRepository interface {
+	Create(game *model.Game) error
+	GetByUser(userID int) ([]*model.Game, error)
+}

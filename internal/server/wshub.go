@@ -16,6 +16,7 @@ import (
 type wsHub struct {
 	sync.Mutex
 	userCons map[int]*websocket.Conn
+	games    map[int]*wsGame
 	logger   *zap.SugaredLogger
 }
 
@@ -31,18 +32,18 @@ func (h *wsHub) PopUser(userID int) {
 	h.Unlock()
 }
 
-func (s *wsHub) writeResponseWS(conn *websocket.Conn, resp *wsResponse) {
+func (h *wsHub) writeResponseWS(conn *websocket.Conn, resp *wsResponse) {
 	buf, err := json.Marshal(resp)
 	if err != nil {
 		err = fmt.Errorf("ошибка при записи ответа. %w", err)
 		if err = conn.WriteMessage(1, []byte("error:"+string(err.Error()))); err != nil {
-			s.logger.Error(err)
+			h.logger.Error(err)
 			return
 		}
 	}
 
 	if err = conn.WriteMessage(1, buf); err != nil {
-		s.logger.Error(err)
+		h.logger.Error(err)
 		return
 	}
 }
@@ -53,8 +54,13 @@ func (h *wsHub) broadcast(msg string, cons ...*websocket.Conn) {
 	}
 }
 
-func (h *wsHub) StartGame(con1, con2 *websocket.Conn) (int, error) {
-	return 0, nil
+func (h *wsHub) StartGame(con1, con2 *websocket.Conn) (model.Game, error) {
+	game := wsGame{}
+	_ = game
+
+	h.broadcast("game starts. send me \"rdy\"")
+
+	return model.Game{}, nil
 }
 
 type wsRequest struct {
@@ -114,17 +120,21 @@ func (s *server) decideInvite(r wsRequest) *wsResponse {
 		return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
 	}
 
+	if _, ok := model.Decisions[request.Decision]; !ok {
+		return &wsResponse{Code: http.StatusBadRequest, Body: "нет такого ответа на приглашение"}
+	}
+
 	inv, err := s.store.Invite().Get(request.InviteID)
 	if err != nil {
 		return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
 	}
 
-	if inv.To != r.userFrom.ID {
-		return &wsResponse{Code: http.StatusForbidden, Body: fmt.Errorf("%w вы не являетесь получателем приглашения", ErrForbidden).Error()}
+	if inv.Decision != model.DecisionNotDecided {
+		return &wsResponse{Code: http.StatusBadRequest, Body: "вы уже ответили на это приглашение"}
 	}
 
-	if _, ok := model.Decisions[request.Decision]; !ok {
-		return &wsResponse{Code: http.StatusBadRequest, Body: "нет такого ответа на приглашение"}
+	if inv.To != r.userFrom.ID {
+		return &wsResponse{Code: http.StatusForbidden, Body: fmt.Errorf("%w вы не являетесь получателем приглашения", ErrForbidden).Error()}
 	}
 
 	if request.Decision == model.DecisionAccepted {
@@ -134,21 +144,23 @@ func (s *server) decideInvite(r wsRequest) *wsResponse {
 			return &wsResponse{Code: http.StatusBadRequest, Body: "на сервере нет вашего подключения. обновите страницу"}
 		}
 
-		s.hub.writeResponseWS(con1, &wsResponse{Code: http.StatusOK})
-
 		if con2, ok = s.hub.userCons[inv.From]; !ok {
 			return &wsResponse{Code: http.StatusBadRequest, Body: "пользователь отправивший приглашение не онлайн"}
 		}
 
-		var winner int
+		s.hub.writeResponseWS(con1, &wsResponse{Code: http.StatusOK})
+
+		var game model.Game
 		// возвращать ошибку из startGame в самом крайнем случае, чтобы записать decision
-		winner, err = s.hub.StartGame(con1, con2)
+		game, err = s.hub.StartGame(con1, con2)
 		if err != nil {
 			return &wsResponse{Code: http.StatusBadRequest, Body: err.Error()}
 		}
 
-		//TODO
-		_ = winner
+		err = s.store.Game().Create(&game)
+		if err != nil {
+			return &wsResponse{Code: http.StatusBadRequest, Body: fmt.Errorf("результат игры не был записан %w", err).Error()}
+		}
 	}
 
 	inv.Decision = request.Decision
