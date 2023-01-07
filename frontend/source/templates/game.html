@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>rock paper scissors</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link href="/bootstrap.min.css" rel="stylesheet">
+    <link rel='stylesheet' type='text/css' media='screen' href='style.css'>
+</head>
+<body>
+
+
+
+<header class="p-3 bg-dark text-white">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <form id="socketForm" class="text-end d-flex">
+                <input class="form-control" type="text" placeholder="websocket">
+                <input class="btn btn-lg btn-info btn-block text-light ml-2" type="submit" value="Отправить в веб сокет">
+            </form>
+
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <li><btn id="playersBtn" class="btn btn-dark">список игроков</btn></li>
+            </ul>
+
+            <div class="text-end">
+                <button id="login-btn" type="button" class="btn btn-outline-light me-2">Вход</button>
+                <button id="signup-btn" type="button" class="btn btn-warning">Регистрация</button>
+                <div id="username" class="d-inline"></div>
+                <button id="logout-btn" type="button" class="btn btn-danger">Выход</button>
+            </div>
+
+        </div>
+    </div>
+</header>
+
+
+
+<div id="content" class="container pt-5">
+
+</div>
+
+<script src='templates.js'></script>
+<script src='main.js'></script>
+<script src="/bootstrap.bundle.min.js"></script>
+</body>
+</html>
