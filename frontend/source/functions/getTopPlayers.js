@@ -1,4 +1,4 @@
-async function getTopPlayers(players) {
+function getTopPlayers(players) {
     const playerList = Object.values(players)
         .map((user, index) => {
             const { name, is_online, score, id } = user;
