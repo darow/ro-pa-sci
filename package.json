@@ -1,0 +1,37 @@
+{
+  "name": "ro-pa-sci",
+  "version": "1.0.0",
+  "description": "```shell\r go run ./cmd/\r ```\r [тестовый фронт](http://localhost:8000/swagger/index.html#)",
+  "private": "true",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development",
+    "dev:watch": "webpack --mode development --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darow/ro-pa-sci.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darow/ro-pa-sci/issues"
+  },
+  "homepage": "https://github.com/darow/ro-pa-sci#readme",
+  "devDependencies": {
+    "@babel/core": "^7.20.7",
+    "@babel/preset-env": "^7.20.2",
+    "babel-loader": "^9.1.0",
+    "clean-webpack-plugin": "^4.0.0",
+    "css-loader": "^6.7.3",
+    "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.7.2",
+    "sass": "^1.57.1",
+    "sass-loader": "^13.2.0",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
+  },
+  "dependencies": {
+    "normalize.css": "^8.0.1"
+  }
+}
