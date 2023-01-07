@@ -62,7 +62,8 @@ module.exports = env => {
         plugins: [
             new CleanWebpackPlugin(),
             new HTMLWebpackPlugin({
-                template: path.resolve(rootPath, './source/index.html')
+                template: path.resolve(rootPath, './source/templates/game.html'),
+                filename: 'game.html'
             }),
             new MiniCssExtractPlugin({
                 filename: `${filename}.css`,
