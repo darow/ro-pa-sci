@@ -12,6 +12,8 @@ function initLogoutButton() {
 
         dispatchEvent(new CustomEvent('show-top-players'));
     });
+
+    return button;
 }
 
 export default initLogoutButton;

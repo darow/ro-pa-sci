@@ -6,6 +6,8 @@ function initPlayersButton() {
     button.addEventListener('click', () => {
         dispatchEvent(new CustomEvent('show-top-players'));
     });
+
+    return button;
 }
 
 export default initPlayersButton;

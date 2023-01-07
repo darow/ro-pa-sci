@@ -18,6 +18,10 @@ function initAuthButtons() {
 
         document.forms[button.formName].addEventListener('submit', handleSubmitForm);
     });
+
+    const buttons = BUTTON_OPTIONS.map(button => document.getElementById(button.id));
+
+    return buttons;
 }
 
 async function handleSubmitForm(event) {
