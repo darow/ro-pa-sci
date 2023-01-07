@@ -12,7 +12,7 @@
   "ignorePatterns": ["node_modules/**"],
   "parser": "babel-eslint",
   "parserOptions": {
-    "ecmaVersion": "latest",
+    "ecmaVersion": "6",
     "sourceType": "module"
   },
   "plugins": [
@@ -21,9 +21,6 @@
   ],
   "rules": {
     "indent": [
-      "error"
-    ],
-    "linebreak-style": [
       "error"
     ],
     "quotes": [
@@ -89,12 +86,10 @@
           "directive",
           "do",
           "empty",
-          "export",
           "for",
           "function",
           "if",
           "iife",
-          "import",
           "return",
           "switch",
           "throw",
@@ -133,6 +128,14 @@
       {
         "max": 1
       }
+    ],
+    "eol-last": [
+      "error",
+      "always"
+    ],
+    "quote-props": [
+      "error",
+      "as-needed"
     ]
   }
 }

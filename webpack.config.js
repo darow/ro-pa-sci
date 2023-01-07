@@ -57,12 +57,18 @@ module.exports = env => {
             path: path.resolve(rootPath, 'distribute')
         },
         resolve: {
-            extensions: ['js', 'json']
+            extensions: ['.js', '.json'],
+            alias: {
+                frontend: path.resolve(__dirname, './frontend'),
+                source: path.resolve(__dirname, './frontend/source'),
+                '@': path.resolve(__dirname, './frontend/source/blocks')
+            }
         },
         plugins: [
             new CleanWebpackPlugin(),
             new HTMLWebpackPlugin({
-                template: path.resolve(rootPath, './source/index.html')
+                template: path.resolve(rootPath, './source/templates/game.html'),
+                filename: 'game.html'
             }),
             new MiniCssExtractPlugin({
                 filename: `${filename}.css`,
