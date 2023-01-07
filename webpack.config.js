@@ -1,27 +1,46 @@
+/* eslint-disable */
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+/* eslint-enable */
 
 module.exports = env => {
+    const isDev = env === 'development';
+    const filename = isDev ? '[name]' : '[name]_[chunkhash]';
+    const rootPath = path.resolve(__dirname, 'frontend');
+
     const cssLoaders = extra => {
         const loaders = [
             {
-                loader: MiniCssExtractPlugin.loader,
+                loader: MiniCssExtractPlugin.loader
             },
-            'css-loader',
-        ]
+            'css-loader'
+        ];
 
         if (extra) {
             loaders.push(extra);
         }
 
         return loaders;
-    }
+    };
 
-    const isDev = env === 'development'
-    const filename = isDev ? '[name]' : '[name]_[chunkhash]';
-    const rootPath = path.resolve(__dirname, 'frontend');
+    const jsLoaders = () => {
+        const loaders = [
+            {
+                loader: 'babel-loader',
+                options: {
+                    presets: ['@babel/preset-env']
+                }
+            }
+        ];
+
+        if (isDev) {
+            loaders.push('eslint-loader');
+        }
+
+        return loaders;
+    };
 
     const config = {
         context: rootPath,
@@ -30,15 +49,15 @@ module.exports = env => {
         optimization: {
             splitChunks: {
                 chunks: 'all'
-            },
+            }
         },
         entry: './source/index.js',
         output: {
             filename: `${filename}.js`,
-            path: path.resolve(rootPath, 'distribute'),
+            path: path.resolve(rootPath, 'distribute')
         },
         resolve: {
-            extensions: ['js', 'json'],
+            extensions: ['js', 'json']
         },
         plugins: [
             new CleanWebpackPlugin(),
@@ -47,32 +66,27 @@ module.exports = env => {
             }),
             new MiniCssExtractPlugin({
                 filename: `${filename}.css`,
-                chunkFilename: '[id].css',
-            }),
+                chunkFilename: '[id].css'
+            })
         ],
         module: {
             rules: [
                 {
                     test: /\.css$/,
-                    use: cssLoaders(),
+                    use: cssLoaders()
                 },
                 {
                     test: /\.s[ac]ss$/,
-                    use: cssLoaders('sass-loader'),
+                    use: cssLoaders('sass-loader')
                 },
                 {
                     test: /\.js$/,
                     exclude: /node_modules/,
-                    use: {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: ['@babel/preset-env'],
-                        },
-                    },
-                },
-            ],
-        },
+                    use: jsLoaders()
+                }
+            ]
+        }
     };
 
     return config;
-}
+};
