@@ -57,7 +57,12 @@ module.exports = env => {
             path: path.resolve(rootPath, 'distribute')
         },
         resolve: {
-            extensions: ['js', 'json']
+            extensions: ['js', 'json'],
+            alias: {
+                frontend: path.resolve(__dirname, './frontend'),
+                source: path.resolve(__dirname, './frontend/source'),
+                '@': path.resolve(__dirname, './frontend/source/blocks')
+            }
         },
         plugins: [
             new CleanWebpackPlugin(),
