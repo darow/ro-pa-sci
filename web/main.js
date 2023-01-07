@@ -68,7 +68,7 @@ logoutBtn.addEventListener('click', async () => {
 
 function refreshWS(callback) {
     closeWebSocket(ws)
-    ws = createWebSocket(`ws://${apiUri}/auth/ws`, { open: callback })
+    ws = createWebSocket(`ws://${apiUri}/auth/ws`, {}, { open: callback })
 }
 
 function createWebSocket(url, options, handlerCallbacks) {
