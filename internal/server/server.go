@@ -40,7 +40,11 @@ func (s *server) configureRouter() {
 
 	s.router.GET("/", func(c *gin.Context) { c.Redirect(http.StatusFound, "/game.html") })
 	s.router.GET("/:filename", func(c *gin.Context) {
-		filepath := "./web/" + c.Param("filename")
+		filepath := "./frontend/distribute/" + c.Param("filename")
+		c.File(filepath)
+	})
+    s.router.GET("/frontend/source/templates/:filename", func(c *gin.Context) {
+		filepath := "./frontend/source/templates/" + c.Param("filename")
 		c.File(filepath)
 	})
 
