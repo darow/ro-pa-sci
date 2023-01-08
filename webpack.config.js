@@ -5,8 +5,8 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 /* eslint-enable */
 
-module.exports = env => {
-    const isDev = env === 'development';
+module.exports = (env, argv) => {
+    const isDev = argv.mode === 'development';
     const filename = isDev ? '[name]' : '[name]_[chunkhash]';
     const rootPath = path.resolve(__dirname, 'frontend');
 
