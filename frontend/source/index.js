@@ -15,7 +15,6 @@ const logoutButton = initLogoutButton();
 initPlayersButton();
 
 const contentElem = document.getElementById('content');
-const errorElem = document.getElementById('error');
 const usernameElem = document.getElementById('username');
 
 let ws;
@@ -60,9 +59,9 @@ async function handleSubmitForm(event) {
         const data = await response.json();
 
         if (data.error) {
-            const detail = { error: data.error };
+            const errorElem = document.getElementById('error');
 
-            document.dispatchEvent(new CustomEvent('submit-error', { detail }));
+            errorElem.textContent = data.error;
 
             return;
         }
@@ -72,10 +71,6 @@ async function handleSubmitForm(event) {
         console.log(error);
     }
 }
-
-document.addEventListener('submit-error', ({ detail }) => {
-    errorElem.textContent = detail.error;
-});
 
 document.addEventListener('show-top-players', updateTopPlayers);
 
