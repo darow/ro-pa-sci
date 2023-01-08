@@ -47,6 +47,10 @@ func (s *server) configureRouter() {
 		filepath := "./frontend/source/templates/" + c.Param("filename")
 		c.File(filepath)
 	})
+    s.router.GET("/frontend/source/bootstrap/:filename", func(c *gin.Context) {
+		filepath := "./frontend/source/bootstrap/" + c.Param("filename")
+		c.File(filepath)
+	})
 
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
