@@ -51,7 +51,7 @@ module.exports = env => {
                 chunks: 'all'
             }
         },
-        entry: './source/index.js',
+        entry: ['@babel/polyfill', './source/index.js'],
         output: {
             filename: `${filename}.js`,
             path: path.resolve(rootPath, 'distribute')
