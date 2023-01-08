@@ -39,12 +39,17 @@ func (s *server) configureRouter() {
 	s.router.Use(s.setRequestID())
 
 	s.router.GET("/", func(c *gin.Context) { c.Redirect(http.StatusFound, "/game.html") })
+    s.router.GET("/favicon.ico", func(c *gin.Context) { c.File("./favicon.ico") })
 	s.router.GET("/:filename", func(c *gin.Context) {
 		filepath := "./frontend/distribute/" + c.Param("filename")
 		c.File(filepath)
 	})
     s.router.GET("/frontend/source/templates/:filename", func(c *gin.Context) {
 		filepath := "./frontend/source/templates/" + c.Param("filename")
+		c.File(filepath)
+	})
+    s.router.GET("/frontend/source/bootstrap/:filename", func(c *gin.Context) {
+		filepath := "./frontend/source/bootstrap/" + c.Param("filename")
 		c.File(filepath)
 	})
 
