@@ -15,7 +15,6 @@ const logoutButton = initLogoutButton();
 initPlayersButton();
 
 const contentElem = document.getElementById('content');
-const errorElem = document.getElementById('error');
 const usernameElem = document.getElementById('username');
 
 let ws;
@@ -48,14 +47,36 @@ async function updateTopPlayers() {
     }
 }
 
-document.addEventListener('submit-error', ({ detail }) => {
-    errorElem.textContent = detail.error;
-});
+async function handleSubmitForm(event) {
+    event.preventDefault();
+
+    try {
+        const target = event.target;
+        const response = await fetch(target.action, {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(target))
+        });
+        const data = await response.json();
+
+        if (data.error) {
+            const errorElem = document.getElementById('error');
+
+            errorElem.textContent = data.error;
+
+            return;
+        }
+
+        document.dispatchEvent(new CustomEvent('update-authorization'));
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 document.addEventListener('show-top-players', updateTopPlayers);
 
 document.addEventListener('update-content', ({ detail }) => {
     contentElem.innerHTML = detail.text;
+    document.forms[detail.formName].addEventListener('submit', handleSubmitForm);
 });
 
 document.addEventListener('update-authorization', async () => {

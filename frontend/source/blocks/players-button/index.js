@@ -4,7 +4,7 @@ function initPlayersButton() {
     const button = document.getElementById(BUTTON_ID);
 
     button.addEventListener('click', () => {
-        dispatchEvent(new CustomEvent('show-top-players'));
+        document.dispatchEvent(new CustomEvent('show-top-players'));
     });
 
     return button;

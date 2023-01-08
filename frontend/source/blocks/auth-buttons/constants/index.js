@@ -1,11 +1,13 @@
+import { ROOT } from 'source/constants';
+
 const BUTTON_IDS = {
     login: 'login-btn',
     signup: 'signup-btn'
 };
 
 const TEMPLATE_PATHS = {
-    login: '/login.html',
-    signup: '/signup.html'
+    login: `${ROOT}/templates/login.html`,
+    signup: `${ROOT}/templates/signup.html`
 };
 
 const FORM_NAMES = {

@@ -7,10 +7,10 @@ function initLogoutButton() {
         const response = await fetch(API_LOGOUT);
 
         if (response.status === 200) {
-            dispatchEvent(new CustomEvent('update-authorization'));
+            document.dispatchEvent(new CustomEvent('update-authorization'));
         }
 
-        dispatchEvent(new CustomEvent('show-top-players'));
+        document.dispatchEvent(new CustomEvent('show-top-players'));
     });
 
     return button;
