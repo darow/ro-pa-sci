@@ -8,45 +8,18 @@ function initAuthButtons() {
             try {
                 const response = await fetch(button.templatePath);
                 const text = await response.text();
-                const detail = { text };
+                const detail = { text, formName: button.formName };
 
-                dispatchEvent(new CustomEvent('update-content', { detail }));
+                document.dispatchEvent(new CustomEvent('update-content', { detail }));
             } catch (error) {
                 console.log(error);
             }
         });
-
-        document.forms[button.formName].addEventListener('submit', handleSubmitForm);
     });
 
     const buttons = BUTTON_OPTIONS.map(button => document.getElementById(button.id));
 
     return buttons;
-}
-
-async function handleSubmitForm(event) {
-    event.preventDefault();
-
-    try {
-        const target = event.target;
-        const response = await fetch(target.action, {
-            method: 'POST',
-            body: new URLSearchParams(new FormData(target))
-        });
-        const data = await response.json();
-
-        if (data.error) {
-            const detail = { error: data.error };
-
-            dispatchEvent(new CustomEvent('submit-error', { detail }));
-
-            return;
-        }
-
-        dispatchEvent(new CustomEvent('update-authorization'));
-    } catch (error) {
-        console.log(error);
-    }
 }
 
 export default initAuthButtons;
